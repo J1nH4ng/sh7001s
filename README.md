@@ -1,8 +1,6 @@
-utils-shell
+# utils-shell
 
-===
-
-> ![NOTE]
+> [!NOTE]
 > 工程化构建脚本工具集
 
 ## 目录结构
