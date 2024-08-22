@@ -6,8 +6,6 @@
 # Globals:
 # Arguments:
 #  None
-SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-source "${SCRIPT_DIR}/../core/banner.sh"
 
 
 #######################################
@@ -62,7 +60,12 @@ function make_current_date_dir_main() {
 #######################################
 function main() {
   if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # 调用 banner_main 函数
+    local script_dir
+    script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+    source "${script_dir}/../core/banner.sh"
     banner_main
+
     get_input "$1"
     get_current_date
     make_date_dir
