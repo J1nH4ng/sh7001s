@@ -7,6 +7,19 @@
 # Arguments:
 #  None
 
+#######################################
+# banner 引用函数
+# Globals:
+#   BASH_SOURCE
+# Arguments:
+#  None
+#######################################
+function import_banner() {
+  local script_dir
+  script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+  source "${script_dir}/../core/banner.sh"
+  banner_main
+}
 
 #######################################
 # Function: Get Input
@@ -60,11 +73,8 @@ function make_current_date_dir_main() {
 #######################################
 function main() {
   if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    # 调用 banner_main 函数
-    local script_dir
-    script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-    source "${script_dir}/../core/banner.sh"
-    banner_main
+    # banner 输出
+    import_banner
 
     get_input "$1"
     get_current_date
