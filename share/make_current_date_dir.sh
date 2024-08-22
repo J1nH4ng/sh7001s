@@ -6,7 +6,9 @@
 # Globals:
 # Arguments:
 #  None
-source "$(dirname "$(pwd)")/core/banner.sh"
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "${SCRIPT_DIR}/../core/banner.sh"
+
 
 #######################################
 # Function: Get Input
@@ -59,7 +61,6 @@ function make_current_date_dir_main() {
 #   1
 #######################################
 function main() {
-  banner_main
   get_input "$1"
   get_current_date
   make_date_dir
