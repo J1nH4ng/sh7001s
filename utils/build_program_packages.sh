@@ -8,6 +8,20 @@
 #  None
 
 #######################################
+# banner 引用函数
+# Globals:
+#   BASH_SOURCE
+# Arguments:
+#  None
+#######################################
+function import_banner() {
+  local script_dir
+  script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+  source "${script_dir}/../core/banner.sh"
+  banner_main
+}
+
+#######################################
 # 日志输出脚本引入
 # Arguments:
 #  None
@@ -24,8 +38,6 @@ function import_output_logs() {
 #  None
 #######################################
 function mvn_env_check() {
-  import_output_logs
-
   mvn_bin=""
   local mvn_path
 
@@ -66,8 +78,6 @@ function pnpm_env_check() {
 #  None
 #######################################
 function git_env_check() {
-  import_output_logs
-
   echo_info "检查 Git 是否安装"
   if command -v git >/dev/null 2>&1; then
     echo_info "Git 已成功安装"
@@ -84,16 +94,16 @@ function git_env_check() {
 #  None
 #######################################
 function git_clone() {
-  import_output_logs
+  local git_url
 
   read -erp "输入项目包名：" project_name
-  if [ -z "${package_name}" ]; then
+  if [ -z "${project_name}" ]; then
     echo_error_basic "项目包名不能为空，脚本将退出"
     return 1
   fi
 
   read -erp "输入项目名称：" package_name
-  if [ -z "${project_name}" ]; then
+  if [ -z "${package_name}" ]; then
     echo_error_basic "项目名称不能为空，脚本将退出"
     return 1
   fi
@@ -103,6 +113,12 @@ function git_clone() {
     echo_error_basic "Git 仓库地址不能为空，脚本将退出"
     return 1
   fi
+
+  echo_info "正在创建项目目录：/usr/local/src/${project_name}"
+  mkdir -p "/usr/local/src/${project_name}" || {
+    echo_error_basic "创建项目目录失败，脚本将退出"
+    return 1
+  }
 
   echo_info "正在克融 Git 仓库：${git_url} 到 /usr/local/src/${project_name}/${package_name}"
   git clone "${git_url}" "/usr/local/src/${project_name}/${package_name}" || {
@@ -117,7 +133,6 @@ function git_clone() {
 #  None
 #######################################
 function build_java_project() {
-  import_output_logs
   echo_info "开始编译 Java 项目"
   mvn_env_check
 
@@ -143,9 +158,13 @@ function build_java_project() {
 #  None
 #######################################
 function main() {
-  mvn_env_check
-  git_clone
-  build_java_project
+  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    import_banner
+    import_output_logs
+    mvn_env_check
+    git_clone
+    build_java_project
+  fi
 }
 
 main "$@"
