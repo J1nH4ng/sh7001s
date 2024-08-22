@@ -7,7 +7,6 @@
 # Arguments:
 #  None
 
-
 #######################################
 # 日志输出脚本引入
 # Arguments:
@@ -16,7 +15,7 @@
 function import_output_logs() {
   local script_dir
   script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-  source "${script_dir}/../core/banner.sh"
+  source "${script_dir}/../core/output_logs.sh"
 }
 
 #######################################
@@ -26,10 +25,15 @@ function import_output_logs() {
 #######################################
 function mvn_env_check() {
   import_output_logs
+
+  mvn_bin=""
+  local mvn_path
+
   echo_info "检查 MVN 是否安装"
   if command -v mvn >/dev/null 2>&1; then
     echo_info "MVN 已成功安装"
     mvn --version
+    mvn_bin="mvn"
   else
     echo_error_basic "MVN 不存在于系统路径中，请输入 MVN 路径或安装 MVN"
     while true; do
@@ -37,6 +41,7 @@ function mvn_env_check() {
       if [ -x "${mvn_path}" ] && command -v mvn >/dev/null 2>&1; then
         echo_info "在 ${mvn_path} 中查找到了 MVN"
         ${mvn_path} --version
+        mvn_bin="${mvn_path}"
         break
       else
         echo_error_basic "MVN 路径无效，脚本将退出"
@@ -44,20 +49,6 @@ function mvn_env_check() {
       fi
     done
   fi
-}
-
-#######################################
-# Java 项目编译
-# Arguments:
-#  None
-#######################################
-function build_java_project() {
-  import_output_logs
-  echo_info "开始编译 Java 项目"
-  local module_name
-  local project_name
-  local git_url
-
 }
 
 #######################################
@@ -70,12 +61,91 @@ function pnpm_env_check() {
 }
 
 #######################################
+# Git 环境检查
+# Arguments:
+#  None
+#######################################
+function git_env_check() {
+  import_output_logs
+
+  echo_info "检查 Git 是否安装"
+  if command -v git >/dev/null 2>&1; then
+    echo_info "Git 已成功安装"
+    git --version
+  else
+    echo_error_basic "Git 不存在于系统路径中，请安装 Git"
+    exit 1
+  fi
+}
+
+#######################################
+# Git 克隆仓库
+# Arguments:
+#  None
+#######################################
+function git_clone() {
+  import_output_logs
+
+  read -erp "输入项目包名：" project_name
+  if [ -z "${package_name}" ]; then
+    echo_error_basic "项目包名不能为空，脚本将退出"
+    return 1
+  fi
+
+  read -erp "输入项目名称：" package_name
+  if [ -z "${project_name}" ]; then
+    echo_error_basic "项目名称不能为空，脚本将退出"
+    return 1
+  fi
+
+  read -erp "输入 Git 仓库地址：" git_url
+  if [ -z "${git_url}" ]; then
+    echo_error_basic "Git 仓库地址不能为空，脚本将退出"
+    return 1
+  fi
+
+  echo_info "正在克融 Git 仓库：${git_url} 到 /usr/local/src/${project_name}/${package_name}"
+  git clone "${git_url}" "/usr/local/src/${project_name}/${package_name}" || {
+    echo_error_basic "克融 Git 仓库失败，脚本将退出"
+    return 1
+  }
+}
+
+#######################################
+# Java 项目编译
+# Arguments:
+#  None
+#######################################
+function build_java_project() {
+  import_output_logs
+  echo_info "开始编译 Java 项目"
+  mvn_env_check
+
+  echo_info "切换到项目目录，准备打包"
+  cd "/usr/local/src/${project_name}/${package_name}" || {
+    echo_error_basic "切换到项目目录失败，脚本将退出"
+    return 1
+  }
+
+  local module_name
+  read -erp "输入需要打包的模块名称：" module_name
+  if [ -z "${module_name}" ]; then
+    echo_error_basic "模块名称不能为空，脚本将退出"
+    return 1
+  fi
+
+  ${mvn_bin} clean package -pl "${module_name}" -am -Dmaven.test.skip=true
+}
+
+#######################################
 # main 函数
 # Arguments:
 #  None
 #######################################
 function main() {
   mvn_env_check
+  git_clone
+  build_java_project
 }
 
 main "$@"
