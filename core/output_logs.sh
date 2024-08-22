@@ -27,7 +27,7 @@ readonly NC='\033[0m' # No Color
 #   1
 #######################################
 function echo_info() {
-  echo -e "${CYAN_BG}$(date +"%H:%M:%S")${NC} ${GREEN_BG}[INFO]${NC} - ${GREEN}$1${NC}"
+  echo -e "${CYAN}$(date +"%H:%M:%S")${NC} ${GREEN}[INFO]${NC} - ${GREEN}$1${NC}"
 }
 
 
@@ -49,7 +49,7 @@ function echo_info_logs() {
 #   1
 #######################################
 function echo_warn() {
-  echo -e "\033[1;36m$(date +"%H:%M:%S")\033[0m \033[1;33m[ALERT]\033[0m - \033[1;33m$1\033[0m"
+  echo -e "${CYAN}$(date +"%H:%M:%S")${NC} ${YELLOW}[WARN]${NC} - ${YELLOW}$1${NC}"
 }
 
 #######################################
@@ -61,7 +61,7 @@ function echo_warn() {
 function echo_warn_logs() {
   local shell_name
   shell_name=$1
-  echo -e "$(date +"%H:%M:%S") [ALERT]:${shell_name}:$2" >> /tmp/shutils.log
+  echo -e "$(date +"%H:%M:%S") [WARN]:${shell_name}:$2" >> /tmp/shutils.log
 }
 
 #######################################
@@ -70,7 +70,7 @@ function echo_warn_logs() {
 #   1
 #######################################
 function echo_error_basic() {
-  echo -e "\033[1;36m$(date +"%H:%M:%S")\033[0m \033[1;31m[ERROR]\033[0m - \033[1;31m$1\n\033[0m"
+  echo -e "${CYAN}$(date +"%H:%M:%S")${NC} ${RED}[ERROR]${NC} - ${RED}$1${NC}"
 }
 
 #######################################
