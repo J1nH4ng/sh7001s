@@ -89,6 +89,38 @@ function git_env_check() {
 }
 
 #######################################
+# lrzsz 环境检查
+# Arguments:
+#  None
+#######################################
+function lrzsz_env_check() {
+  echo_info "检查 lrzsz 是否安装"
+  if command -v sz >/dev/null 2>&1; then
+    echo_info "sz 已成功安装"
+    sz --version
+  else
+    echo_error_basic "lrzsz 不存在于系统路径中，请安装 lrzsz"
+    exit 1
+  fi
+}
+
+#######################################
+# zip 环境检查
+# Arguments:
+#  None
+#######################################
+function zip_env_check() {
+  echo_info "检查 zip 是否安装"
+  if command -v zip >/dev/null 2>&1; then
+    echo_info "zip 已成功安装"
+    zip --version
+  else
+    echo_error_basic "zip 不存在于系统路径中，请安装 zip"
+    exit 1
+  fi
+}
+
+#######################################
 # Git 克隆仓库
 # Arguments:
 #  None
@@ -150,6 +182,19 @@ function build_java_project() {
   fi
 
   ${mvn_bin} clean package -pl "${module_name}" -am -Dmaven.test.skip=true
+
+  echo_info "Java 项目编译成功"
+  echo_info "编译后的文件位于：/usr/local/src/${project_name}/${package_name}/${module_name}/target/ 目录下"
+  echo_info "重命名文件并下载"
+  mv "/usr/local/src/${project_name}/${package_name}/${module_name}/target/*.jar" "/usr/local/src/${project_name}/${package_name}/${module_name}/target/${module_name}.jar" || {
+    echo_error_basic "重命名文件失败，脚本将退出"
+    return 1
+  }
+
+  sz "/usr/local/src/${project_name}/${package_name}/${module_name}/target/${module_name}.jar" || {
+    echo_error_basic "下载文件失败，脚本将退出"
+    return 1
+  }
 }
 
 #######################################
