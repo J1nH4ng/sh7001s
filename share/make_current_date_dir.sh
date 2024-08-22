@@ -62,6 +62,7 @@ function make_current_date_dir_main() {
 #######################################
 function main() {
   if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    banner_main
     get_input "$1"
     get_current_date
     make_date_dir
