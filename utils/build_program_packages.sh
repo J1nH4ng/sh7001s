@@ -186,15 +186,30 @@ function build_java_project() {
   echo_info "Java 项目编译成功"
   echo_info "编译后的文件位于：/usr/local/src/${project_name}/${package_name}/${module_name}/target/ 目录下"
   echo_info "重命名文件并下载"
-  mv "/usr/local/src/${project_name}/${package_name}/${module_name}/target/*.jar" "/usr/local/src/${project_name}/${package_name}/${module_name}/target/${module_name}.jar" || {
-    echo_error_basic "重命名文件失败，脚本将退出"
+
+  jar_file=$(ls /usr/local/src/${project_name}/${package_name}/${module_name}/target/*.jar) 2>/dev/null
+  if [ -z "${jar_file}" ]; then
+    echo_error_basic "未找到编译后的 jar 文件，脚本将退出" && rm -rf "/usr/local/src/${project_name}/${package_name}"
+    return 1
+  fi
+
+  mv "${jar_file}" "/usr/local/src/download/${package_name}/${module_name}/${module_name}.jar" || {
+    echo_error_basic "重命名文件失败，脚本将退出" && rm -rf "/usr/local/src/${project_name}/${package_name}"
     return 1
   }
 
-  sz "/usr/local/src/${project_name}/${package_name}/${module_name}/target/${module_name}.jar" || {
-    echo_error_basic "下载文件失败，脚本将退出"
+  sz "/usr/local/src/download/${project_name}/${package_name}/${module_name}.jar" || {
+    echo_error_basic "下载文件失败，脚本将退出" && rm -rf "/usr/local/src/${project_name}/${package_name}"
     return 1
   }
+
+  echo_warn "删除 Git 仓库"
+  rm -rf "/usr/local/src/${project_name}/${package_name}" || {
+    echo_error_basic "删除 Git 仓库失败，脚本将退出"
+    return 1
+  }
+
+  echo_info "删除 Git 仓库成功"
 }
 
 #######################################
