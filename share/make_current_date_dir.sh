@@ -61,9 +61,11 @@ function make_current_date_dir_main() {
 #   1
 #######################################
 function main() {
-  get_input "$1"
-  get_current_date
-  make_date_dir
+  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    get_input "$1"
+    get_current_date
+    make_date_dir
+  fi
 }
 
 main "$@"
