@@ -61,7 +61,7 @@ function select_or_input() {
         local package_name="${BASH_REMATCH[2]}"
         local git_url="${BASH_REMATCH[3]}"
         if [[ -n "${project_name}" && -n "${package_name}" && -n "${git_url}" ]]; then
-          options+=("${project_name}:${package_name}:${git_url}")
+          options+=("【${project_name}】【${package_name}】【${git_url}】")
         fi
       fi
     done < "${list_file}"
@@ -73,13 +73,19 @@ function select_or_input() {
     echo_info "${prompt}"
     select option in "${options[@]}" "手动输入"; do
       if [ -n "${option}" ] && [ "${option}" != "手动输入" ]; then
-        IFS=':' read -r project_name package_name git_url <<< "${option}"
-        case "${index}" in
-          1) value="${project_name}" ;;
-          2) value="${package_name}" ;;
-          3) value="${git_url}" ;;
-        esac
-        break
+        if [[ "${option}" =~ ^\【([^\】]+)\】\【([^\】]+)\】\【([^\】]+)\】$ ]]; then
+          local project_name="${BASH_REMATCH[1]}"
+          local package_name="${BASH_REMATCH[2]}"
+          local git_url="${BASH_REMATCH[3]}"
+          case "${index}" in
+            1) value="${project_name}" ;;
+            2) value="${package_name}" ;;
+            3) value="${git_url}" ;;
+          esac
+          break
+        else
+          echo_warn "无效选择，请重新选择"
+        fi
       elif [ "${option}" == "手动输入" ]; then
         read -erp "${prompt}" value
         break
