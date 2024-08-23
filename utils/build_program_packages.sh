@@ -202,7 +202,7 @@ function build_node_project() {
   esac
 
   echo_info "开始压缩文件夹"
-  zip -r "/usr/local/src/download/${current_date}/[${project_name}]-[${package_name}].zip" "/usr/local/src/speed-cicd/${project_name}/${package_name}/dist" || {
+  zip -jr "/usr/local/src/download/${current_date}/[${project_name}]-[${package_name}].zip" "/usr/local/src/speed-cicd/${project_name}/${package_name}/dist" || {
     echo_error_basic "打包失败，脚本将退出"
     return 1
   }
