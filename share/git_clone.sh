@@ -49,10 +49,18 @@ function select_or_input() {
   local index=$3
   local options=()
   local value
+  local line
 
   if [ -f "${list_file}" ]; then
-    while IFS=':' read -r project_name package_name git_url; do
-      options+=("${project_name}:${package_name}:${git_url}")
+    while IFS= read -r line; do
+      if [[ "${line}" =~ ^\【([^\】]+)\】\【([^\】]+)\】\【([^\】]+)\】$ ]]; then
+        local project_name="${BASH_REMATCH[1]}"
+        local package_name="${BASH_REMATCH[2]}"
+        local git_url="${BASH_REMATCH[3]}"
+        if [[ -n "${project_name}" && -n "${package_name}" && -n "${git_url}" ]]; then
+          options+=("${project_name}:${package_name}:${git_url}")
+        fi
+      fi
     done < "${list_file}"
   fi
 
@@ -70,7 +78,9 @@ function select_or_input() {
         esac
         break
       elif [ "${option}" == "手动输入" ]; then
+        disable_output_logs
         read -erp "${prompt}" value
+        enable_output_logs
         break
       else
         echo_warn "无效选择，请重新选择"
@@ -95,9 +105,8 @@ function write_record() {
   local git_url=$3
   local list_file=$4
 
-  echo "${project_name}:${package_name}:${git_url}" >> "${list_file}"
+  echo "【${project_name}】【${package_name}】【${git_url}】" >> "${list_file}"
 }
-
 
 #######################################
 # 下载源代码
@@ -149,7 +158,9 @@ function git_clone() {
     return 1
   }
 
-  echo_info "正在克隆 Git 仓库：${git_url} 分支：${branch_name} 到 /usr/local/src/speed-cicd/${project_name}/${package_name}"
+  echo_info "正在克隆 Git 仓库：\033[44m ${git_url} \033[0m"
+  echo_info "正在克隆分支：\033[44m ${branch_name} \033[0m"
+  echo_info "克隆到 \033[44m /usr/local/src/speed-cicd/${project_name}/${package_name} \033[0m"
 
   # 尝试克隆用户选择的分支
   if ! git clone -b "${branch_name}" --single-branch "${git_url}" "/usr/local/src/speed-cicd/${project_name}/${package_name}"; then
