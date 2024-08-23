@@ -111,7 +111,9 @@ function write_record() {
   local git_url=$3
   local list_file=$4
 
-  echo "【${project_name}】【${package_name}】【${git_url}】" >> "${list_file}"
+  if ! grep -q "【${project_name}】【${package_name}】【${git_url}】" "${list_file}"; then
+    echo "【${project_name}】【${package_name}】【${git_url}】" >> "${list_file}"
+  fi
 }
 
 #######################################
@@ -225,6 +227,19 @@ function clean_up_git_clone() {
   fi
 }
 
+
+
+#######################################
+# main function: 用于调用
+# Arguments:
+#  None
+#######################################
+function git_clone_main() {
+  import_output_logs
+  git_env_check
+  git_clone
+}
+
 #######################################
 # main function
 # Arguments:
@@ -235,7 +250,6 @@ function main() {
     import_output_logs
     git_env_check
     git_clone
-    # clean_up_git_clone
   fi
 }
 
