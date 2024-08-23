@@ -47,7 +47,10 @@ function select_or_input() {
   local prompt=$1
   local list_file=$2
   local index=$3
+
   local options=()
+  local option
+
   local value
   local line
 
@@ -140,15 +143,24 @@ function git_clone() {
   write_record "${project_name}" "${package_name}" "${git_url}" "${list_file}"
 
   echo_info "请选择要克隆的分支："
-  select branch_name in main test; do
-    if [ -n "${branch_name}" ]; then
-      echo_info "你选择的分支为：${branch_name}"
-      break
-    eles
-      echo_warn "未正确选择分支，默认为 main 分支"
-      branch_name="main"
-      break
-    fi
+  select branch_name in main test "手动输入"; do
+    case "${branch_name}" in
+      main|test)
+        break
+        ;;
+      "手动输入")
+        read -erp "请输入分支名称：" branch_name
+        if [ -n "${branch_name}" ]; then
+          echo_info "您输入的分支名称为：${branch_name}"
+          break
+        else
+          echo_warn "分支名称不能为空，请重新输入"
+        fi
+        ;;
+      *)
+        echo_warn "无效选择，请重新选择"
+        ;;
+    esac
   done
 
   clean_up_git_clone
