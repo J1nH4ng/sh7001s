@@ -171,13 +171,17 @@ function build_node_project() {
   read -erp "选择打包方式（1: 预定义命令, 2: 手动输入）：" build_method
   case "${build_method}" in
     1)
-      read -erp "输入环境（dev/prod）：" environment
+      read -erp "输入环境（test/prod）：" environment
       case "${environment}" in
-        dev)
-          build_command="npm run build:dev"
+        test)
+          build_command="pnpm run build:test"
+          echo_info "开始执行打包命令：${build_command}"
+          eval "${build_command}"
           ;;
         prod)
-          build_command="npm run build:prod"
+          build_command="pnpm run build"
+          echo_info "开始执行打包命令：${build_command}"
+          eval "${build_command}"
           ;;
         *)
           echo_error_basic "未知环境，脚本将退出"
@@ -188,14 +192,14 @@ function build_node_project() {
     2)
       read -erp "输入手动打包命令：" manual_input
       build_command="${manual_input}"
+      echo_info "开始执行打包命令：${build_command}"
+      eval "${build_command}"
       ;;
     *)
       echo_error_basic "未知选项，脚本将退出"
       return 1
       ;;
   esac
-
-  echo_indo "开始执行打包命令：${build_command}"
 
   echo_info "开始压缩文件夹"
   zip -r "/usr/local/src/download/${current_date}/[${project_name}]-[${package_name}].zip" "/usr/local/src/speed-cicd/${project_name}/${package_name}/dist" || {
