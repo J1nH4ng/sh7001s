@@ -127,7 +127,6 @@ function git_clone() {
   data_path="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
   local list_file="${data_path}/../data/project_list.txt"
 
-  local package_name
   local git_url
 
   echo_info "请选择或输入输入项目名：\n"
