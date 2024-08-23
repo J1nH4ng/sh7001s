@@ -73,22 +73,6 @@ function pnpm_env_check() {
 }
 
 #######################################
-# Git 环境检查
-# Arguments:
-#  None
-#######################################
-function git_env_check() {
-  echo_info "检查 Git 是否安装"
-  if command -v git >/dev/null 2>&1; then
-    echo_info "Git 已成功安装"
-    git --version
-  else
-    echo_error_basic "Git 不存在于系统路径中，请安装 Git"
-    exit 1
-  fi
-}
-
-#######################################
 # lrzsz 环境检查
 # Arguments:
 #  None
@@ -197,19 +181,6 @@ function build_java_project() {
     echo_error_basic "重命名文件失败，脚本将退出" && rm -rf "/usr/local/src/${project_name}/${package_name}"
     return 1
   }
-
-  sz "/usr/local/src/download/${project_name}/${package_name}/${module_name}.jar" || {
-    echo_error_basic "下载文件失败，脚本将退出" && rm -rf "/usr/local/src/${project_name}/${package_name}"
-    return 1
-  }
-
-  echo_warn "删除 Git 仓库"
-  rm -rf "/usr/local/src/${project_name}/${package_name}" || {
-    echo_error_basic "删除 Git 仓库失败，脚本将退出"
-    return 1
-  }
-
-  echo_info "删除 Git 仓库成功"
 }
 
 #######################################
