@@ -19,22 +19,6 @@ function import_output_logs() {
 }
 
 #######################################
-# Git 环境检查
-# Arguments:
-#  None
-#######################################
-function git_env_check() {
-  echo_info "检查 Git 是否安装"
-  if command -v git >/dev/null 2>&1; then
-    echo_info "Git 已成功安装"
-    echo_info "版本为：$(git --version)"
-  else
-    echo_error_basic "Git 不存在于系统路径中，请安装 Git"
-    exit 1
-  fi
-}
-
-#######################################
 # 从列表文件中选择或输入并写入
 # Arguments:
 #  1. 提示信息
