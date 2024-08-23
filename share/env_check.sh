@@ -8,6 +8,17 @@
 #  None
 
 #######################################
+# 日志输出脚本引入
+# Arguments:
+#  None
+#######################################
+function import_output_logs() {
+  local script_dir
+  script_dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+  source "${script_dir}/../core/output_logs.sh"
+}
+
+#######################################
 # Git 环境检查
 # Arguments:
 #  None
@@ -16,7 +27,6 @@ function git_env_check() {
   echo_info "检查 Git 是否安装"
   if command -v git >/dev/null 2>&1; then
     echo_info "Git 已成功安装"
-    echo_info "版本为：$(git --version)"
   else
     echo_error_basic "Git 不存在于系统路径中，请安装 Git"
     exit 1
@@ -29,27 +39,35 @@ function git_env_check() {
 #  None
 #######################################
 function mvn_env_check() {
-  local mvn_path
+#  local mvn_path
+#
+#  echo_info "检查 MVN 是否安装"
+#  if command -v mvn >/dev/null 2>&1; then
+#    echo_info "MVN 已成功安装"
+#    mvn --version
+#    mvn_bin="mvn"
+#  else
+#    echo_error_basic "MVN 不存在于系统路径中，请输入 MVN 路径或安装 MVN"
+#    while true; do
+#      read -erp "请输入 MVN 路径：" mvn_path
+#      if [ -x "${mvn_path}" ] && command -v mvn >/dev/null 2>&1; then
+#        echo_info "在 ${mvn_path} 中查找到了 MVN"
+#        ${mvn_path} --version
+#        mvn_bin="${mvn_path}"
+#        break
+#      else
+#        echo_error_basic "MVN 路径无效，脚本将退出"
+#        exit 1
+#      fi
+#    done
+#  fi
 
-  echo_info "检查 MVN 是否安装"
+  echo_info "检查 mvn 是否安装"
   if command -v mvn >/dev/null 2>&1; then
-    echo_info "MVN 已成功安装"
-    mvn --version
-    mvn_bin="mvn"
+    echo_info "mvn 已成功安装"
   else
-    echo_error_basic "MVN 不存在于系统路径中，请输入 MVN 路径或安装 MVN"
-    while true; do
-      read -erp "请输入 MVN 路径：" mvn_path
-      if [ -x "${mvn_path}" ] && command -v mvn >/dev/null 2>&1; then
-        echo_info "在 ${mvn_path} 中查找到了 MVN"
-        ${mvn_path} --version
-        mvn_bin="${mvn_path}"
-        break
-      else
-        echo_error_basic "MVN 路径无效，脚本将退出"
-        exit 1
-      fi
-    done
+    echo_error_basic "mvn 不存在于系统路径中，请安装 mvn"
+    exit 1
   fi
 }
 
@@ -62,9 +80,8 @@ function pnpm_env_check() {
   echo_info "检查 pnpm 是否安装"
   if command -v pnpm >/dev/null 2>&1; then
     echo_info "pnpm 已成功安装"
-    echo_info "版本为：$(pnpm --version)"
   else
-    echo_error_basic "Git 不存在于系统路径中，请安装 Git"
+    echo_error_basic "pnpm 不存在于系统路径中，请安装 pnpm"
     exit 1
   fi
 }
@@ -76,7 +93,13 @@ function pnpm_env_check() {
 #  None
 #######################################
 function nvm_env_check() {
-  :
+  echo_info "检查 nvm 是否安装"
+  if command -v pnpm >/dev/null 2>&1; then
+    echo_info "nvm 已成功安装"
+  else
+    echo_error_basic "nvm 不存在于系统路径中，请安装 nvm"
+    exit 1
+  fi
 }
 
 #######################################
@@ -87,8 +110,7 @@ function nvm_env_check() {
 function lrzsz_env_check() {
   echo_info "检查 lrzsz 是否安装"
   if command -v sz >/dev/null 2>&1; then
-    echo_info "sz 已成功安装"
-    sz --version
+    echo_info "lrzsz 已成功安装"
   else
     echo_error_basic "lrzsz 不存在于系统路径中，请安装 lrzsz"
     exit 1
@@ -104,20 +126,24 @@ function zip_env_check() {
   echo_info "检查 zip 是否安装"
   if command -v zip >/dev/null 2>&1; then
     echo_info "zip 已成功安装"
-    zip --version
   else
     echo_error_basic "zip 不存在于系统路径中，请安装 zip"
     exit 1
   fi
 }
 
+#######################################
+# env_bin 函数
+# Arguments:
+#  None
+#######################################
 function env_bin() {
-  export mvn_bin=""
-  export git_bin=""
-  export pnpm_bin=""
-  export nvm_bin=""
-  export lrzsz_bin=""
-  export zip_bin=""
+  declare -rx mvn_bin="mvn"
+  declare -rx git_bin="git"
+  declare -rx pnpm_bin="pnpm"
+  declare -rx nvm_bin="nvm"
+  declare -rx sz_bin="sz"
+  declare -rx zip_bin="zip"
 }
 
 #######################################
@@ -126,7 +152,14 @@ function env_bin() {
 #  None
 #######################################
 function main() {
-  :
+  import_output_logs
+  mvn_env_check
+  git_env_check
+  pnpm_env_check
+  zip_env_check
+  nvm_env_check
+  lrzsz_env_check
+  echo_info "环境检查完成"
 }
 
 main "$@"
