@@ -81,9 +81,7 @@ function select_or_input() {
         esac
         break
       elif [ "${option}" == "手动输入" ]; then
-        disable_output_logs
         read -erp "${prompt}" value
-        enable_output_logs
         break
       else
         echo_warn "无效选择，请重新选择"
@@ -170,9 +168,9 @@ function git_clone() {
     return 1
   }
 
-  echo_info "正在克隆 Git 仓库：\033[44m ${git_url} \033[0m"
-  echo_info "正在克隆分支：\033[44m ${branch_name} \033[0m"
-  echo_info "克隆到 \033[44m /usr/local/src/speed-cicd/${project_name}/${package_name} \033[0m"
+  echo_info "正在克隆 Git 仓库：\033[44m【${git_url}】\033[0m"
+  echo_info "正在克隆分支：\033[44m【${branch_name}】\033[0m"
+  echo_info "克隆到 \033[44m【/usr/local/src/speed-cicd/${project_name}/${package_name}】\033[0m"
 
   # 尝试克隆用户选择的分支
   if ! git clone -b "${branch_name}" --single-branch "${git_url}" "/usr/local/src/speed-cicd/${project_name}/${package_name}"; then
