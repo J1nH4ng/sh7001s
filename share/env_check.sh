@@ -147,6 +147,22 @@ function env_bin() {
 }
 
 #######################################
+# main 函数 用于其他脚本调用
+# Arguments:
+#  None
+#######################################
+function env_check_main() {
+  echo_info "开始环境检查"
+  mvn_env_check
+  git_env_check
+  pnpm_env_check
+  zip_env_check
+  nvm_env_check
+  lrzsz_env_check
+  echo_info "环境检查完成"
+}
+
+#######################################
 # main 函数
 # Arguments:
 #  None
