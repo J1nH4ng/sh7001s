@@ -7,19 +7,19 @@
 # Arguments:
 #  None
 
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[0;33m'
-readonly BLUE='\033[0;34m'
-readonly PURPLE='\033[0;35m'
-readonly CYAN='\033[0;36m'
-readonly RED_BG='\033[41m'
-readonly GREEN_BG='\033[42m'
-readonly YELLOW_BG='\033[43m'
-readonly BLUE_BG='\033[44m'
-readonly PURPLE_BG='\033[45m'
-readonly CYAN_BG='\033[46m'
-readonly NC='\033[0m' # No Color
+declare -rx RED='\033[0;31m'
+declare -rx GREEN='\033[0;32m'
+declare -rx YELLOW='\033[0;33m'
+declare -rx BLUE='\033[0;34m'
+declare -rx PURPLE='\033[0;35m'
+declare -rx CYAN='\033[0;36m'
+declare -rx RED_BG='\033[41m'
+declare -rx GREEN_BG='\033[42m'
+declare -rx YELLOW_BG='\033[43m'
+declare -rx BLUE_BG='\033[44m'
+declare -rx PURPLE_BG='\033[45m'
+declare -rx CYAN_BG='\033[46m'
+declare -rx NC='\033[0m' # No Color
 
 #######################################
 # info function
