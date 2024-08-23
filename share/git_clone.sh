@@ -245,7 +245,6 @@ function clean_up_git_clone() {
 #  None
 #######################################
 function git_clone_main() {
-  import_output_logs
   git_env_check
   git_clone
 }
