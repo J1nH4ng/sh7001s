@@ -132,9 +132,11 @@ function git_clone() {
 
   echo_info "请选择或输入输入项目名：\n"
   project_name=$(select_or_input "请输入项目名：" "${list_file}" 1)
-  echo "===================================="
-  echo -e "\033[41m${project_name}\033[0m"
-  echo "===================================="
+
+  echo "========================================================================"
+  echo_info "您选择或输入的项目名为：\033[44m${project_name}\033[0m"
+  echo -e "========================================================================\n"
+
 
   if [ -z "${project_name}" ]; then
     echo_error_basic "项目包名不能为空"
@@ -143,9 +145,11 @@ function git_clone() {
 
   echo_info "请选择或输入项目包名：\n"
   package_name=$(select_or_input "请输入项目包名：" "${list_file}" 2)
-  echo "===================================="
-  echo -e "\033[41m${package_name}\033[0m"
-  echo "===================================="
+
+  echo "========================================================================"
+  echo_info "您选择或输入的项目包名为：\033[44m${project_name}\033[0m"
+  echo -e "========================================================================\n"
+
   if [ -z "${package_name}" ]; then
     echo_error_basic "项目包名不能为空"
     exit 1
@@ -153,9 +157,11 @@ function git_clone() {
 
   echo_info "请选择或输入项目 Git 地址：\n"
   git_url=$(select_or_input "请输入项目 Git 地址：" "${list_file}" 3)
-  echo "===================================="
-  echo -e "\033[41m${git_url}\033[0m"
-  echo "===================================="
+
+  echo "========================================================================"
+  echo_info "您选择或输入的 Git 地址为：\033[44m${project_name}\033[0m"
+  echo -e "========================================================================\n"
+
   if [ -z "${git_url}" ]; then
     echo_error_basic "Git 地址不能为空"
     exit 1
@@ -184,6 +190,10 @@ function git_clone() {
     esac
   done
 
+  echo "========================================================================"
+  echo_info "您选择或输入的 Git 分支为：\033[44m${branch_name}\033[0m"
+  echo -e "========================================================================\n"
+
   clean_up_git_clone
 
   mkdir -p "/usr/local/src/speed-cicd/${project_name}" || {
@@ -193,7 +203,7 @@ function git_clone() {
 
   echo_info "正在克隆 Git 仓库：\033[44m【${git_url}】\033[0m"
   echo_info "正在克隆分支：\033[44m【${branch_name}】\033[0m"
-  echo_info "克隆到 \033[44m【/usr/local/src/speed-cicd/${project_name}/${package_name}】\033[0m"
+  echo_info "克隆位置为： \033[44m【/usr/local/src/speed-cicd/${project_name}/${package_name}】\033[0m"
 
   # 尝试克隆用户选择的分支
   if ! git clone -b "${branch_name}" --single-branch "${git_url}" "/usr/local/src/speed-cicd/${project_name}/${package_name}"; then
