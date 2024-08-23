@@ -27,7 +27,7 @@ function git_env_check() {
   echo_info "检查 Git 是否安装"
   if command -v git >/dev/null 2>&1; then
     echo_info "Git 已成功安装"
-    git --version
+    echo_info "版本为：$(git --version)"
   else
     echo_error_basic "Git 不存在于系统路径中，请安装 Git"
     exit 1
@@ -48,10 +48,10 @@ function select_or_input() {
   local list_file=$2
   local index=$3
 
+  local value
+
   local options=()
   local option
-
-  local value
   local line
 
   if [ -f "${list_file}" ]; then
@@ -70,7 +70,6 @@ function select_or_input() {
   if [ ${#options[@]} -eq 0 ]; then
     read -erp "${prompt}" value
   else
-    echo_info "${prompt}"
     select option in "${options[@]}" "手动输入"; do
       if [ -n "${option}" ] && [ "${option}" != "手动输入" ]; then
         if [[ "${option}" =~ ^\【([^\】]+)\】\【([^\】]+)\】\【([^\】]+)\】$ ]]; then
@@ -126,19 +125,35 @@ function git_clone() {
   data_path="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
   local list_file="${data_path}/../data/project_list.txt"
 
-  project_name=$(select_or_input "请输入项目包名：" "${list_file}" 1)
+  local package_name
+  local git_url
+
+  echo_info "请选择或输入输入项目名：\n"
+  project_name=$(select_or_input "请输入项目名：" "${list_file}" 1)
+  echo "===================================="
+  echo -e "\033[41m${project_name}\033[0m"
+  echo "===================================="
+
   if [ -z "${project_name}" ]; then
     echo_error_basic "项目包名不能为空"
     exit 1
   fi
 
+  echo_info "请选择或输入项目包名：\n"
   package_name=$(select_or_input "请输入项目包名：" "${list_file}" 2)
+  echo "===================================="
+  echo -e "\033[41m${package_name}\033[0m"
+  echo "===================================="
   if [ -z "${package_name}" ]; then
     echo_error_basic "项目包名不能为空"
     exit 1
   fi
 
+  echo_info "请选择或输入项目 Git 地址：\n"
   git_url=$(select_or_input "请输入项目 Git 地址：" "${list_file}" 3)
+  echo "===================================="
+  echo -e "\033[41m${git_url}\033[0m"
+  echo "===================================="
   if [ -z "${git_url}" ]; then
     echo_error_basic "Git 地址不能为空"
     exit 1
@@ -146,7 +161,7 @@ function git_clone() {
 
   write_record "${project_name}" "${package_name}" "${git_url}" "${list_file}"
 
-  echo_info "请选择要克隆的分支："
+  echo_info "请选择要克隆的分支：\n"
   select branch_name in main test "手动输入"; do
     case "${branch_name}" in
       main|test)
