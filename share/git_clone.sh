@@ -109,7 +109,7 @@ function git_clone() {
   local branch_name
   local data_path
   data_path="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
-  local list_file="${data_path}/../data/project_list.txt"
+  local list_file="${data_path}/../data/speed-cicd/project_list.txt"
 
   local git_url
 
