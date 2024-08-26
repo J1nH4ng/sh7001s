@@ -34,15 +34,6 @@ function logs_banner() {
 }
 
 #######################################
-# Banner 输出函数，用于调用
-# Arguments:
-#  None
-#######################################
-function banner_main() {
-  banner
-}
-
-#######################################
 # Main Function
 # Arguments:
 #  None
