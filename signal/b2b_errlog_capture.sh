@@ -68,8 +68,20 @@ function find_error_block() {
       echo "$line" >> "${tmp_error_block}"
     fi
   done < "$log_file"
+
+  echo "${tmp_error_block}" > output.txt
 }
 
+
+#######################################
+# test Function：测试函数
+# Arguments:
+#  None
+#######################################
+function test() {
+  source_db
+  find_error_block "${script_dir}/../data/error_log/test_error_logs.log"
+}
 
 
 
@@ -79,10 +91,7 @@ function find_error_block() {
 #  None
 #######################################
 function main() {
-  source_db
-
-  local final_error_block
-  final_error_block=""
+  test "$@"
 }
 
 main "$@"
