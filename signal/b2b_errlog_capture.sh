@@ -26,15 +26,17 @@ function source_db() {
 function check_exclude_words() {
   local log_line="$1"
 
-  local have_exclude_words
+  export have_exclude_words
+
   have_exclude_words=false
 
   local exclude_words=()
   local word
 
   while IFS= read -r word; do
-    exclude_words+=("${word#【}")
-    exclude_words+=("${word%】}")
+    if [[ "$word" == 【*】 ]]; then
+      exclude_words+=("${word:1:-1}")
+    fi
   done < "${script_dir}/../data/error_log/exclude_error_words.txt"
 
   for word in "${exclude_words[@]}"; do
@@ -55,21 +57,29 @@ function find_error_block() {
   local in_error_block=false
 
   local line
-  local tmp_error_block=""
+  local tmp_error_block
+
+  tmp_error_block=$(mktemp)
 
   while IFS= read -r line; do
     if [[ $line == *"【ERROR】"* ]]; then
       in_error_block=true
       check_exclude_words "$line"
-      echo "$line" >> "${tmp_error_block}"
+      if [[ $have_exclude_words == false ]]; then
+        echo "$line" >> "${tmp_error_block}"
+      fi
     elif [[ $line == *"【INFO】"* || $line == *"【WARN】"* || $line == *"【DEBUG】"* ]]; then
       in_error_block=false
     elif $in_error_block; then
-      echo "$line" >> "${tmp_error_block}"
+      check_exclude_words "$line"
+      if [[ $have_exclude_words == false ]]; then
+        echo "$line" >> "${tmp_error_block}"
+      fi
     fi
   done < "$log_file"
 
-  echo "${tmp_error_block}" > output.txt
+  cat "${tmp_error_block}"
+  rm -f "${tmp_error_block}"
 }
 
 
