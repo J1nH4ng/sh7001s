@@ -11,7 +11,7 @@
 
 # 脚本信息
 SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-SH_VERSION="v0.0.2"
+SH_VERSION="v0.0.3"
 
 # 服务器基本信息
 # [info] 请根据每台服务器实际情况进行修改
@@ -54,9 +54,12 @@ report_CPU_nums=""
 report_CPU_type=""
 # [DONE) CPU 架构
 report_CPU_arch=""
-# [TODO) 内存总量
-# [TODO) 内存剩余
-# [TODO) 内存使用率
+# [DONE) 内存总量
+report_memory_total=""
+# [DONE) 内存剩余
+report_memory_free=""
+# [DONE) 内存使用率
+report_memory_used_percent=""
 # [TODO) 磁盘总容量
 # [TODO) 磁盘剩余
 # [TODO) 磁盘使用率
@@ -125,9 +128,33 @@ function get_cpu_status() {
     report_CPU_arch=${CPU_arch}
 }
 
+function get_memory_status() {
+    echo ""
+    echo "###################### 内存检查 ######################"
+
+    if [[ $OS_VERSION < 7 ]];then
+        free -mo
+    else
+        free -h
+    fi
+
+    # 单位为：KB
+    memory_total=$(grep "MemTotal" /proc/meminfo | awk '{print $2}')
+    memory_free=$(grep "MemFree" /proc/meminfo | awk '{print $2}')
+    let memory_used=memory_total-memory_free
+    memory_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")
+
+    report_memory_total="$((memory_total/1024))"" MB"
+    report_memory_free="$((memory_free/1024))"" MB"
+    report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
+
+    echo ""
+}
+
 function main() {
     version
     get_cpu_status
+    get_memory_status
 }
 
 main "$@"
