@@ -48,11 +48,11 @@ report_language=""
 report_last_reboot_time=""
 # [TODO) 运行时间
 report_uptime=""
-# [TODO) CPU 数量
+# [DONE) CPU 数量
 report_CPU_nums=""
-# [TODO) CPU 类型
+# [DONE) CPU 类型
 report_CPU_type=""
-# [TODO) CPU 架构
+# [DONE) CPU 架构
 report_CPU_arch=""
 # [TODO) 内存总量
 # [TODO) 内存剩余
