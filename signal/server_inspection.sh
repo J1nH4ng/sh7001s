@@ -283,15 +283,11 @@ function get_disk_status() {
     local disk_free
     local disk_used_percent
 
-    # KB
+    # 单位为：KB
     disk_data=$(df -TP | sed '1d' | awk '$2!="tmpfs"{print}')
-    # KB
     disk_total=$(echo "${disk_data}" | awk '{total+=$3}END{print total}')
-    # KB
     disk_used=$(echo "${disk_data}" | awk '{total+=$4}END{print total}')
-    # KB
     disk_free=$((disk_total-disk_used))
-    # KB
     disk_used_percent=$(echo "${disk_total}" "${disk_used}" | awk '{if($1==0){printf 100}else{printf "%.2f",$2*100/$1}}')
 
 
