@@ -12,7 +12,7 @@
 
 # 脚本信息
 SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-SH_VERSION="v0.4.1"
+SH_VERSION="v0.4.2"
 
 # 服务器基本信息
 # [info] 请根据每台服务器实际情况进行修改
@@ -26,7 +26,8 @@ source /etc/profile
 
 # 系统版本
 # OS_VERSION=$(awk -F '=' '/^VERSION_ID=/{gsub(/"/, "", $2); print $2}' /etc/os-release)
-OS_NAME=$(awk -F '=' '/^ID=/{gsub(/"/, "", $2); print $2}' /etc/os-release)
+OS_VERSION=$(awk -F '=' '/^ID=/{gsub(/"/, "", $2); print $2}' /etc/os-release)
+OS_NAME=$(awk -F '=' '/^NAME=/{gsub(/"/, "", $2); print $2}' /etc/os-release)
 
 # 生成结果存储目录
 PROGRAM_PATH=$(echo "$0" | sed -e 's,[\\/][^\\/][^\\/]*$,,')
@@ -36,19 +37,21 @@ LOG_PATH="${PROGRAM_PATH}/log"
 RESULT_PATH="${LOG_PATH}/${IP_ADDR}-$(date +%Y%m%d).txt"
 
 # 需要巡检的内容
-# [TODO) 日期
-report_date=""
-# [TODO) 主机名
+# [DONE) 日期
+report_current_date=""
+# [DONE) 主机名
 report_hostname=""
-# [TODO) 发行版本
+# [DONE) SELinux
+report_SELinux=""
+# [DONE) 发行版本
 report_OS_release=""
-# [TODO) 内核
+# [DONE) 内核
 report_kernel=""
-# [TODO) 语言/编码
+# [DONE) 语言/编码
 report_language=""
-# [TODO) 最近启动时间
+# [DONE) 最近启动时间
 report_last_reboot_time=""
-# [TODO) 运行时间
+# [DONE) 运行时间
 report_uptime=""
 # [DONE) CPU 数量
 report_CPU_nums=""
@@ -122,6 +125,60 @@ function version() {
     echo ""
 }
 
+function get_system_status() {
+    echo ""
+    echo "###################### 系统检查 ######################"
+    echo ""
+
+    local default_language
+    local release
+    local kernel
+    local os
+    local hostname
+    local selinux
+    local last_reboot
+    local uptime
+
+    if [ -e /etc/sysconfig/i18n ];then
+      default_language="$(grep "LANG=" /etc/sysconfig/i18n | grep -v "^#" | awk -F '"' '{print $2}')"
+    else
+      default_language=$LANG
+    fi
+
+    export LANG="en_US.UTF-8"
+    release="${OS_NAME}"
+    kernel=$(uname -r)
+    os=$(uname -o)
+    hostname=$(uname -n)
+    selinux=$(/usr/sbin/sestatus | grep "SELinux status: " | awk '{print $3}')
+    last_reboot=$(who -b | awk '{print $3,$4}')
+    uptime=$(uptime | sed 's/.*up \([^,]*\), .*/\1/')
+
+    echo "系统信息：${os}"
+    echo "发行版本：${release}"
+    echo "内核版本：${kernel}"
+    echo "主机名：${hostname}"
+    echo "SELinux 状态：${selinux}"
+    echo "语言/编码：${default_language}"
+    echo "当前时间：$(date +'%F %T')"
+    echo "最后启动：${last_reboot}"
+    echo "运行时间：${uptime}"
+
+    export report_current_date=$(date +"%F %T")
+    export report_hostname="${hostname}"
+    export report_SELinux="${selinux}"
+    export report_OS_release="${release}"
+    export report_kernel="${kernel}"
+    export report_language="${default_language}"
+    export report_last_reboot_time="${last_reboot}"
+    export report_uptime="${uptime}"
+    export LANG="${default_language}"
+
+    echo ""
+    echo "#################### 系统检查结束 ####################"
+    echo ""
+}
+
 function get_cpu_status() {
     echo ""
     echo "###################### CPU 检查 ######################"
@@ -144,6 +201,9 @@ function get_cpu_status() {
     echo "每个 CPU 核心数为：${CPU_kernels}"
     echo "CPU 型号为：${CPU_type}"
     echo "CPU 架构为：${CPU_arch}"
+
+    echo ""
+    echo "#################### CPU 检查结束 ####################"
     echo ""
 
     export report_CPU_nums=${virtual_CPUs}
@@ -184,6 +244,9 @@ function get_memory_status() {
     echo "Mem 空闲量为：${report_memory_free}"
     echo "Mem 使用量为：${report_memory_used}"
     echo "Mem 使用率为：${memory_percent}""%"
+
+    echo ""
+    echo "#################### 内存检查结束 ####################"
     echo ""
 }
 
@@ -249,11 +312,15 @@ function get_disk_status() {
     echo "Inode 已用量为：${report_inode_used}"
     echo "Inode 空闲量为：${report_inode_free}"
     echo "Inode 使用率为：${inode_used_percent}""%"
+
+    echo ""
+    echo "#################### 磁盘检查结束 ####################"
     echo ""
 }
 
 function main() {
     version
+    get_system_status
     get_cpu_status
     get_memory_status
     get_disk_status
