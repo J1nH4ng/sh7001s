@@ -10,9 +10,6 @@
 # @Description: Scripts 4 Server Inspection     #
 #################################################
 
-# 脚本信息
-SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-SH_VERSION="v0.4.2"
 
 # 服务器基本信息
 # [info] 请根据每台服务器实际情况进行修改
@@ -37,24 +34,6 @@ LOG_PATH="${PROGRAM_PATH}/log"
 RESULT_PATH="${LOG_PATH}/${IP_ADDR}-$(date +%Y%m%d).txt"
 
 # 需要巡检的内容
-
-# [INFO] 系统信息
-# [DONE) 日期
-report_current_date=""
-# [DONE) 主机名
-report_hostname=""
-# [DONE) SELinux
-report_SELinux=""
-# [DONE) 发行版本
-report_OS_release=""
-# [DONE) 内核
-report_kernel=""
-# [DONE) 语言/编码
-report_language=""
-# [DONE) 最近启动时间
-report_last_reboot_time=""
-# [DONE) 运行时间
-report_uptime=""
 
 # [INFO] CPU 信息
 # [DONE) CPU 数量
@@ -128,6 +107,10 @@ report_inode_used_percent=""
 
 
 function version() {
+    # 脚本信息
+    SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
+    SH_VERSION="v0.4.2"
+
     echo ""
     echo -e "\033[1;34m   ________ _____ ____   \033[0m"
     echo -e "\033[1;32m  |___ /_ _|_   _/ ___|  \033[0m"
@@ -156,10 +139,28 @@ function get_system_status() {
     local last_reboot
     local uptime
 
+    # [INFO] 系统信息
+    # [DONE) 日期
+    export report_current_date=""
+    # [DONE) 主机名
+    export report_hostname=""
+    # [DONE) SELinux
+    export report_SELinux=""
+    # [DONE) 发行版本
+    export report_OS_release=""
+    # [DONE) 内核
+    export report_kernel=""
+    # [DONE) 语言/编码
+    export report_language=""
+    # [DONE) 最近启动时间
+    export report_last_reboot_time=""
+    # [DONE) 运行时间
+    export report_uptime=""
+
     if [ -e /etc/sysconfig/i18n ];then
-      default_language="$(grep "LANG=" /etc/sysconfig/i18n | grep -v "^#" | awk -F '"' '{print $2}')"
+        default_language="$(grep "LANG=" /etc/sysconfig/i18n | grep -v "^#" | awk -F '"' '{print $2}')"
     else
-      default_language=$LANG
+        default_language=$LANG
     fi
 
     export LANG="en_US.UTF-8"
@@ -208,7 +209,7 @@ function get_cpu_status() {
     local CPU_arch
 
     physical_CPUs=$(grep "physical id" /proc/cpuinfo | sort | uniq | wc -l)
-    virtual_CPUs=$(grep -c "processor" /proc/cpuinfo )
+    virtual_CPUs=$(grep -c "processor" /proc/cpuinfo)
     CPU_kernels=$(grep "cores" /proc/cpuinfo | uniq | awk -F ': ' '{print $2}')
     CPU_type=$(grep "model name" /proc/cpuinfo | awk -F ': ' '{print $2}' | sort | uniq)
     CPU_arch=$(uname -m)
@@ -248,7 +249,7 @@ function get_memory_status() {
     # 单位为：KB
     memory_total=$(grep "MemTotal" /proc/meminfo | awk '{print $2}')
     memory_free=$(grep "MemFree" /proc/meminfo | awk '{print $2}')
-    (( memory_used=memory_total-memory_free ))
+    ((memory_used=memory_total-memory_free))
     memory_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")
 
     export report_memory_total="$((memory_total/1024))"" MB"
@@ -272,9 +273,9 @@ function get_disk_status() {
     echo "###################### 磁盘检查 ######################"
     echo ""
 
-    df -hiP | sed 's/Mounted on/Mounted/' > /tmp/inode
-    df -hTP | sed 's/Mounted on/Mounted/' > /tmp/disk
-    join /tmp/disk /tmp/inode | awk '{print $1,$2,"|",$3,$4,$5,$6,"|",$8,$9,$10,$11,"|",$12}'| column -t
+    df -hiP | sed 's/Mounted on/Mounted/' >/tmp/inode
+    df -hTP | sed 's/Mounted on/Mounted/' >/tmp/disk
+    join /tmp/disk /tmp/inode | awk '{print $1,$2,"|",$3,$4,$5,$6,"|",$8,$9,$10,$11,"|",$12}' | column -t
 
 
     local disk_data
