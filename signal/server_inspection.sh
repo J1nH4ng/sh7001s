@@ -35,6 +35,24 @@ RESULT_PATH="${LOG_PATH}/${IP_ADDR}-$(date +%Y%m%d).txt"
 
 # 需要巡检的内容
 
+# [INFO] 系统信息
+# [DONE) 日期
+report_current_date=""
+# [DONE) 主机名
+report_hostname=""
+# [DONE) SELinux
+report_SELinux=""
+# [DONE) 发行版本
+report_OS_release=""
+# [DONE) 内核
+report_kernel=""
+# [DONE) 语言/编码
+report_language=""
+# [DONE) 最近启动时间
+report_last_reboot_time=""
+# [DONE) 运行时间
+report_uptime=""
+
 # [INFO] CPU 信息
 # [DONE) CPU 数量
 report_CPU_nums=""
@@ -108,6 +126,9 @@ report_inode_used_percent=""
 
 function version() {
     # 脚本信息
+    local SH_AUTHOR
+    local SH_VERSION
+
     SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
     SH_VERSION="v0.4.2"
 
@@ -138,24 +159,6 @@ function get_system_status() {
     local selinux
     local last_reboot
     local uptime
-
-    # [INFO] 系统信息
-    # [DONE) 日期
-    export report_current_date=""
-    # [DONE) 主机名
-    export report_hostname=""
-    # [DONE) SELinux
-    export report_SELinux=""
-    # [DONE) 发行版本
-    export report_OS_release=""
-    # [DONE) 内核
-    export report_kernel=""
-    # [DONE) 语言/编码
-    export report_language=""
-    # [DONE) 最近启动时间
-    export report_last_reboot_time=""
-    # [DONE) 运行时间
-    export report_uptime=""
 
     if [ -e /etc/sysconfig/i18n ];then
         default_language="$(grep "LANG=" /etc/sysconfig/i18n | grep -v "^#" | awk -F '"' '{print $2}')"
