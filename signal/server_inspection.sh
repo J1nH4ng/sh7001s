@@ -1,13 +1,13 @@
 #!/bin/bash
 
-##############################################
-# @Author: J1nH4ng                           #
-# @Date: 2024-11-07                          #
-# @Last Modified By: J1nH4ng                 #
-# @Last Modifide Date: 2024-11-07            #
-# @Email: j1nh4ng@icloud.com                 #
-# @Description: 服务器巡检脚本                 #
-##############################################
+#################################################
+# @Author: J1nH4ng                              #
+# @Date: 2024-11-07                             #
+# @Last Modified By: J1nH4ng                    #
+# @Last Modifide Date: 2024-11-07               #
+# @Email: j1nh4ng@icloud.com                    #
+# @Description: Scripts 4 Server Inspection     #
+#################################################
 
 # 脚本信息
 SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
