@@ -11,7 +11,7 @@
 
 # 脚本信息
 SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-SH_VERSION="v0.0.3"
+SH_VERSION="v0.3.2"
 
 # 服务器基本信息
 # [info] 请根据每台服务器实际情况进行修改
