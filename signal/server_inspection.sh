@@ -37,6 +37,8 @@ LOG_PATH="${PROGRAM_PATH}/log"
 RESULT_PATH="${LOG_PATH}/${IP_ADDR}-$(date +%Y%m%d).txt"
 
 # 需要巡检的内容
+
+# [INFO] 系统信息
 # [DONE) 日期
 report_current_date=""
 # [DONE) 主机名
@@ -53,12 +55,16 @@ report_language=""
 report_last_reboot_time=""
 # [DONE) 运行时间
 report_uptime=""
+
+# [INFO] CPU 信息
 # [DONE) CPU 数量
 report_CPU_nums=""
 # [DONE) CPU 类型
 report_CPU_type=""
 # [DONE) CPU 架构
 report_CPU_arch=""
+
+# [INFO] 内存信息
 # [DONE) 内存总量
 report_memory_total=""
 # [DONE) 内存使用
@@ -67,6 +73,8 @@ report_memory_used=""
 report_memory_free=""
 # [DONE) 内存使用率
 report_memory_used_percent=""
+
+# [INFO] 磁盘信息
 # [DONE) 磁盘总容量
 report_disk_total=""
 # [DONE) 磁盘已用
@@ -83,30 +91,39 @@ report_inode_free=""
 report_inode_used=""
 # [DONE) Inode 使用率
 report_inode_used_percent=""
+
+
 # [TODO) IP 地址
 # [TODO) MAC 地址
 # [TODO) 默认网关
 # [TODO) DNS
+
 # [TODO) 监听端口
-# [TODO) SeLinux
 # [TODO) Firewalld
+
 # [TODO) 用户
 # [TODO) 空密码用户
 # [TODO) 相同 ID 用户
 # [TODO) 密码过期
 # [TODO) ROOT 用户
 # [TODO) Sudo 授权
+
 # [TODO) SSH 信任主机
 # [TODO) SSH 协议版本
 # [TODO) 允许 ROOT 远程登录
+
 # [TODO) 僵尸进程数量
 # [TODO) 自启动服务数量
 # [TODO) 自启动程序数量
+
 # [TODO) 运行中的任务数
 # [TODO) 计划中的任务数
+
 # [TODO) 日志服务
+
 # [TODO) SNMP
 # [TODO) NTP
+
 # [TODO) JDK 版本
 
 
