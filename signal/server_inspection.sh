@@ -6,6 +6,7 @@
 # @Last Modified By: J1nH4ng                    #
 # @Last Modifide Date: 2024-11-08               #
 # @Email: j1nh4ng@icloud.com                    #
+# @Version: v0.3.2                              #
 # @Description: Scripts 4 Server Inspection     #
 #################################################
 
