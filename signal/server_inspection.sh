@@ -111,7 +111,9 @@ report_inode_used_percent=""
 
 # [TODO) 僵尸进程数量
 # [TODO) 自启动服务数量
+report_self_initiated_service=""
 # [TODO) 自启动程序数量
+report_self_initiated_program=""
 
 # [TODO) 运行中的任务数
 # [TODO) 计划中的任务数
@@ -130,7 +132,7 @@ function version() {
     local SH_VERSION
 
     SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-    SH_VERSION="v0.4.2"
+    SH_VERSION="v0.5.1"
 
     echo ""
     echo -e "\033[1;34m   ________ _____ ____   \033[0m"
@@ -185,19 +187,28 @@ function get_system_status() {
     echo "最后启动：${last_reboot}"
     echo "运行时间：${uptime}"
 
-    export report_current_date=$(date +"%F %T")
-    export report_hostname="${hostname}"
-    export report_SELinux="${selinux}"
-    export report_OS_release="${release}"
-    export report_kernel="${kernel}"
-    export report_language="${default_language}"
-    export report_last_reboot_time="${last_reboot}"
-    export report_uptime="${uptime}"
-    export LANG="${default_language}"
-
     echo ""
     echo "#################### 系统检查结束 ####################"
     echo ""
+
+    report_current_date=$(date +"%F %T")
+    report_hostname="${hostname}"
+    report_SELinux="${selinux}"
+    report_OS_release="${release}"
+    report_kernel="${kernel}"
+    report_language="${default_language}"
+    report_last_reboot_time="${last_reboot}"
+    report_uptime="${uptime}"
+
+    export report_current_date
+    export report_hostname
+    export report_SELinux
+    export report_OS_release
+    export report_kernel
+    export report_language
+    export report_last_reboot_time
+    export report_uptime
+    export LANG="${default_language}"
 }
 
 function get_cpu_status() {
@@ -227,9 +238,13 @@ function get_cpu_status() {
     echo "#################### CPU 检查结束 ####################"
     echo ""
 
-    export report_CPU_nums=${virtual_CPUs}
-    export report_CPU_type=${CPU_type}
-    export report_CPU_arch=${CPU_arch}
+    report_CPU_nums=${virtual_CPUs}
+    report_CPU_type=${CPU_type}
+    report_CPU_arch=${CPU_arch}
+
+    export report_CPU_nums
+    export report_CPU_type
+    export report_CPU_arch
 }
 
 function get_memory_status() {
@@ -255,11 +270,6 @@ function get_memory_status() {
     ((memory_used=memory_total-memory_free))
     memory_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")
 
-    export report_memory_total="$((memory_total/1024))"" MB"
-    export report_memory_free="$((memory_free/1024))"" MB"
-    export report_memory_used="$((memory_used/1024))"" MB"
-    export report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
-
     echo ""
     echo "Mem 总共量为：${report_memory_total}"
     echo "Mem 空闲量为：${report_memory_free}"
@@ -269,6 +279,16 @@ function get_memory_status() {
     echo ""
     echo "#################### 内存检查结束 ####################"
     echo ""
+
+    report_memory_total="$((memory_total/1024))"" MB"
+    report_memory_free="$((memory_free/1024))"" MB"
+    report_memory_used="$((memory_used/1024))"" MB"
+    report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
+
+    export report_memory_total
+    export report_memory_free
+    export report_memory_used
+    export report_memory_used_percent
 }
 
 function get_disk_status() {
@@ -311,16 +331,6 @@ function get_disk_status() {
     inode_free=$((inode_total-inode_used))
     inode_used_percent=$(echo "${inode_total}" "${inode_used}" | awk '{if($1==0){printf 100}else{printf "%.2f",$2*100/$1}}')
 
-    export report_disk_total=$((disk_total/1024/1024))" GB"
-    export report_disk_free=$((disk_free/1024/1024))" GB"
-    export report_disk_used=$((disk_used/1024/1024))" GB"
-    export report_disk_used_percent="${disk_used_percent}""%"
-
-    export report_inode_total=$((inode_total/1000))" K"
-    export report_inode_free=$((inode_free/1000))" K"
-    export report_inode_used=$((inode_used/1000))" K"
-    export report_inode_used_percent="$inode_used_percent""%"
-
     echo ""
     echo "DISK 总共量为：${report_disk_total}"
     echo "DISK 已用量为：${report_disk_used}"
@@ -337,6 +347,57 @@ function get_disk_status() {
     echo ""
     echo "#################### 磁盘检查结束 ####################"
     echo ""
+
+    report_disk_total=$((disk_total/1024/1024))" GB"
+    report_disk_free=$((disk_free/1024/1024))" GB"
+    report_disk_used=$((disk_used/1024/1024))" GB"
+    report_disk_used_percent="${disk_used_percent}""%"
+
+    export report_disk_total
+    export report_disk_free
+    export report_disk_used
+    export report_disk_used_percent
+
+    report_inode_total=$((inode_total/1000))" K"
+    report_inode_free=$((inode_free/1000))" K"
+    report_inode_used=$((inode_used/1000))" K"
+    report_inode_used_percent="$inode_used_percent""%"
+
+    export report_inode_total
+    export report_inode_free
+    export report_inode_used
+    export report_inode_used_percent
+}
+
+function get_service_status() {
+    echo ""
+    echo "#################### 服务检查 ####################"
+    echo ""
+
+    if [[ $OS_NAME != "centos" ]];then
+        conf=$(systemctl list-unit-files --type=service --state=enabled --no-pager | grep "enabled")
+        process=$(systemctl list-units --type=service --state=running --no-pager | grep ".service")
+    else
+        conf=$(/sbin/chkconfig | grep -E ":on|:启用")
+        process=$(/sbin/service --status-all 2>/dev/null | grep -E "is running|正在运行")
+    fi
+
+    echo "服务配置"
+    echo "----------------"
+    echo "${conf}" | column -t
+    echo ""
+    echo "正在运行的服务"
+    echo "${process}"
+
+    echo ""
+    echo "#################### 服务检查结束 ####################"
+    echo ""
+
+    report_self_initiated_service="$(echo "${conf}" | wc -l)"
+    report_self_initiated_program="$(echo "${process}" | wc -l)"
+
+    export report_self_initiated_service
+    export report_self_initiated_program
 }
 
 function main() {
