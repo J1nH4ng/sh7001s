@@ -4,9 +4,9 @@
 # @Author: J1nH4ng                              #
 # @Date: 2024-11-07                             #
 # @Last Modified By: J1nH4ng                    #
-# @Last Modified Date: 2024-11-08               #
+# @Last Modified Date: 2024-11-12               #
 # @Email: j1nh4ng@icloud.com                    #
-# @Version: v0.3.2                              #
+# @Version: v0.11.7                             #
 # @Description: Scripts 4 Server Inspection     #
 #################################################
 
@@ -52,6 +52,8 @@ report_language=""
 report_last_reboot_time=""
 # [DONE) 运行时间
 report_uptime=""
+# [DONE) SELinux
+report_selinux=""
 
 # [INFO] CPU 信息
 # [DONE) CPU 数量
@@ -90,41 +92,67 @@ report_inode_used=""
 report_inode_used_percent=""
 
 
-# [TODO) IP 地址
-# [TODO) MAC 地址
-# [TODO) 默认网关
-# [TODO) DNS
+# [DONE) IP 地址
+report_ip=""
+# [DONE) MAC 地址
+report_mac=""
+# [DONE) 默认网关
+report_gateway=""
+# [DONE) DNS
+report_dns=""
 
-# [TODO) 监听端口
+# [DONE) 监听端口
+report_listen=""
+
+
 # [TODO) Firewalld
+report_firewalld=""
 
 # [TODO) 用户
+report_users=""
 # [TODO) 空密码用户
+report_user_with_empty_password=""
 # [TODO) 相同 ID 用户
+report_user_with_same_uid=""
 # [TODO) 密码过期
+report_password_expiry=""
 # [TODO) ROOT 用户
+report_root_users=""
 # [TODO) Sudo 授权
+report_sudoers=""
 
 # [TODO) SSH 信任主机
+report_ssh_authorized=""
 # [TODO) SSH 协议版本
+report_sshd_protocol_version=""
 # [TODO) 允许 ROOT 远程登录
+report_sshd_permit_root_login=""
 
 # [TODO) 僵尸进程数量
-# [TODO) 自启动服务数量
+report_defunct_process=""
+# [DONE) 自启动服务数量
 report_self_initiated_service=""
-# [TODO) 自启动程序数量
+# [DONE) 运行中的服务数量
+report_running_service=""
+
+# [DONE) 自启动程序数量
 report_self_initiated_program=""
 
-# [TODO) 运行中的任务数
-# [TODO) 计划中的任务数
+# [DONE) 计划中的任务数
+report_crontab=""
 
 # [TODO) 日志服务
+report_syslog=""
 
 # [TODO) SNMP
+report_snmp=""
 # [TODO) NTP
+report_ntp=""
+
 
 # [TODO) JDK 版本
-
+# [TODO) Node.js 版本
+# [TODO) Php 版本
 
 function version() {
     # 脚本信息
@@ -132,7 +160,7 @@ function version() {
     local SH_VERSION
 
     SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-    SH_VERSION="v0.5.1"
+    SH_VERSION="v0.11.7"
 
     echo ""
     echo -e "\033[1;34m   ________ _____ ____   \033[0m"
@@ -199,6 +227,7 @@ function get_system_status() {
     report_language="${default_language}"
     report_last_reboot_time="${last_reboot}"
     report_uptime="${uptime}"
+    report_selinux="${selinux}"
 
     export report_current_date
     export report_hostname
@@ -208,6 +237,7 @@ function get_system_status() {
     export report_language
     export report_last_reboot_time
     export report_uptime
+    export report_selinux
     export LANG="${default_language}"
 }
 
@@ -270,6 +300,11 @@ function get_memory_status() {
     ((memory_used=memory_total-memory_free))
     memory_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")
 
+    report_memory_total="$((memory_total/1024))"" MB"
+    report_memory_free="$((memory_free/1024))"" MB"
+    report_memory_used="$((memory_used/1024))"" MB"
+    report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
+
     echo ""
     echo "Mem 总共量为：${report_memory_total}"
     echo "Mem 空闲量为：${report_memory_free}"
@@ -279,11 +314,6 @@ function get_memory_status() {
     echo ""
     echo "#################### 内存检查结束 ####################"
     echo ""
-
-    report_memory_total="$((memory_total/1024))"" MB"
-    report_memory_free="$((memory_free/1024))"" MB"
-    report_memory_used="$((memory_used/1024))"" MB"
-    report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
 
     export report_memory_total
     export report_memory_free
@@ -331,6 +361,16 @@ function get_disk_status() {
     inode_free=$((inode_total-inode_used))
     inode_used_percent=$(echo "${inode_total}" "${inode_used}" | awk '{if($1==0){printf 100}else{printf "%.2f",$2*100/$1}}')
 
+    report_disk_total=$((disk_total/1024/1024))" GB"
+    report_disk_free=$((disk_free/1024/1024))" GB"
+    report_disk_used=$((disk_used/1024/1024))" GB"
+    report_disk_used_percent="${disk_used_percent}""%"
+
+    report_inode_total=$((inode_total/1000))" K"
+    report_inode_free=$((inode_free/1000))" K"
+    report_inode_used=$((inode_used/1000))" K"
+    report_inode_used_percent="$inode_used_percent""%"
+
     echo ""
     echo "DISK 总共量为：${report_disk_total}"
     echo "DISK 已用量为：${report_disk_used}"
@@ -348,20 +388,10 @@ function get_disk_status() {
     echo "#################### 磁盘检查结束 ####################"
     echo ""
 
-    report_disk_total=$((disk_total/1024/1024))" GB"
-    report_disk_free=$((disk_free/1024/1024))" GB"
-    report_disk_used=$((disk_used/1024/1024))" GB"
-    report_disk_used_percent="${disk_used_percent}""%"
-
     export report_disk_total
     export report_disk_free
     export report_disk_used
     export report_disk_used_percent
-
-    report_inode_total=$((inode_total/1000))" K"
-    report_inode_free=$((inode_free/1000))" K"
-    report_inode_used=$((inode_used/1000))" K"
-    report_inode_used_percent="$inode_used_percent""%"
 
     export report_inode_total
     export report_inode_free
@@ -374,6 +404,9 @@ function get_service_status() {
     echo "#################### 服务检查 ####################"
     echo ""
 
+    local conf
+    local process
+
     if [[ $OS_NAME != "centos" ]];then
         conf=$(systemctl list-unit-files --type=service --state=enabled --no-pager | grep "enabled")
         process=$(systemctl list-units --type=service --state=running --no-pager | grep ".service")
@@ -382,11 +415,14 @@ function get_service_status() {
         process=$(/sbin/service --status-all 2>/dev/null | grep -E "is running|正在运行")
     fi
 
-    echo "服务配置"
+    echo "服务配置："
+    echo ""
     echo "----------------"
     echo "${conf}" | column -t
     echo ""
-    echo "正在运行的服务"
+    echo "正在运行的服务："
+    echo ""
+    echo "----------------"
     echo "${process}"
 
     echo ""
@@ -394,11 +430,197 @@ function get_service_status() {
     echo ""
 
     report_self_initiated_service="$(echo "${conf}" | wc -l)"
-    report_self_initiated_program="$(echo "${process}" | wc -l)"
+    report_running_service="$(echo "${process}" | wc -l)"
 
     export report_self_initiated_service
+    export report_running_service
+}
+
+function get_auto_start_status() {
+    echo ""
+    echo "#################### 自启动检查 ####################"
+    echo ""
+
+    local conf
+
+    conf=$(grep -v "^#" /etc/rc.d/rc.local | sed '/^$/d')
+    echo "${conf}"
+
+    echo ""
+    echo "#################### 自启动检查结束 ####################"
+    echo ""
+
+    report_self_initiated_program="$(echo ${conf} | wc -l)"
+
     export report_self_initiated_program
 }
+
+function get_login_status() {
+    echo ""
+    echo "#################### 登录检查 ####################"
+    echo ""
+
+    last | head
+
+    echo ""
+    echo "#################### 登录检查结束 ####################"
+    echo ""
+}
+
+function get_network_status() {
+    echo ""
+    echo "#################### 网络检查 ####################"
+    echo ""
+
+    local i
+    local gateway
+    local dns
+    local local_ip
+    local mac
+
+    if [[ $OS_NAME == "CentOS" ]]; then
+      /sbin/ifconfif -a | grep -v packets |  grep -v collisions | grep -v inet6
+    else
+      for i in $(ip link | grep BROADCAST | awk -F: '{print $2}'); do
+        local_ip=$(ip add show $i | grep -E "BROADCAST|global" | awk '{print $2}' | tr '\n' ' ' );
+      done
+    fi
+
+    gateway=$(ip route | grep default | awk '{print $3}')
+    dns=$(grep nameserver /etc/resolv.conf | grep -v "#" | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')
+    mac=$(ip link | grep -v "LOOPBACK\|loopback" | awk '{print $2}' | sed 'N;s/\n//' | tr '\n' ',' | sed 's/,$//')
+
+    echo ""
+    echo "网卡与其 IP  地址为：${local_ip}"
+    echo "网卡与其 MAC 地址为：${mac}"
+    echo "网关地址为：${gateway}"
+    echo "DNS 地址为：${dns}"
+
+    echo ""
+    echo "#################### 网络检查结束 ####################"
+    echo ""
+
+    # report_ip="${local_ip}"
+    report_ip=$(ip -f inet addr | grep -v 127.0.0.1 | grep inet | awk '{print $NF,$2}' | tr '\n' ',' | sed 's/,$//')
+    report_mac="${mac}"
+    report_gateway="${gateway}"
+    report_dns="${dns}"
+
+    export report_ip
+    export report_mac
+    export report_gateway
+    export report_dns
+}
+
+function get_listen_status() {
+    echo ""
+    echo "#################### 监听地址检查 ####################"
+    echo ""
+
+    local tcp_listen
+
+    tcp_listen=$(ss -ntul | column -t)
+
+    echo "网络地址监听地址列表如下："
+    echo ""
+    echo "${tcp_listen}"
+
+    echo ""
+    echo "#################### 监听地址检查结束 ####################"
+    echo ""
+
+    report_listen="$(echo "${tcp_listen}" | sed '1d' | awk '/tcp/ {print $5}' | awk -F: '{print $NF}' | sort | uniq | wc -l)"
+
+    export report_listen
+}
+
+function get_cron_status() {
+    echo ""
+    echo "#################### 计划任务检查 ####################"
+    echo ""
+
+    local local_crontab
+    local user
+    local shell
+
+    local_crontab=0
+
+    for shell in $(grep -v "/sbin/nologin" /etc/shells); do
+      for user in $(grep "${shell}" /etc/passwd | awk -F: '{print $1}'); do
+        crontab -l -u "${user}" >/dev/null 2>&1
+        status=$?
+        if [ $status -eq 0 ]; then
+          echo ""
+          echo "当前用户为：${user}"
+          echo ""
+          echo "当前用户的的定时任务如下："
+          echo ""
+          crontab -l -u "${user}"
+          let local_crontab+=local_crontab+$(crontab -l -u "${user}" | wc -l)
+          echo ""
+        fi
+      done
+    done
+
+    # 列出与 crontab 相关的文件
+    # find /etc/cron* -type f | xargs -i ls -l {} | column -t
+
+    let local_crontab=local_crontab+$(find /etc/cron* -type f | wc -l)
+
+    echo ""
+    echo "#################### 计划任务检查结束 ####################"
+    echo ""
+
+    report_crontab="${local_crontab}"
+
+    export report_crontab
+}
+
+function utils_get_how_long_age() {
+    local datetime
+    local format_timestamp
+    local now_timestamp
+    local minus_timestamp
+
+    local days
+    local hours
+    local minutes
+
+
+    const SEC_IN_ONE_DAY=86400
+    const SEC_IN_ONE_HOUR=3600
+    const SEC_IN_ONE_MINUTE=60
+
+    datetime="$*"
+
+    [ -z "${datetime}" ]  && echo "错误输入：function utils_get_how_long_age() {:} $*"
+
+    format_timestamp=$(date +%s -d "${datetime}")
+    now_timestamp=$(date +%s)
+    minus_timestamp=$((now_timestamp-format_timestamp))
+
+    days=0
+    hours=0
+    minutes=0
+
+    while (( $(($minus_timestamp-$SEC_IN_ONE_DAY)) > 1 )); do
+      let minus_timestamp=minus_timestamp-SEC_IN_ONE_DAY
+      let days++
+    done
+
+    while (( $(($minus_timestamp-$SEC_IN_ONE_HOUR)) > 1 )); do
+      let minus_timestamp=minus_timestamp-SEC_IN_ONE_HOUR
+      let hours++
+    done
+
+    while (( $(($minus_timestamp-$SEC_IN_ONE_MINUTE)) > 1 )); do
+      let minus_timestamp=minus_timestamp-SEC_IN_ONE_MINUTE
+      let minutes++
+    done
+
+    echo "${days}天${hours}小时${minutes}分钟"
+}
+
 
 function main() {
     version
@@ -406,6 +628,12 @@ function main() {
     get_cpu_status
     get_memory_status
     get_disk_status
+    get_login_status
+    get_service_status
+    get_auto_start_status
+    get_network_status
+    get_listen_status
+    get_cron_status
 }
 
 main "$@"
