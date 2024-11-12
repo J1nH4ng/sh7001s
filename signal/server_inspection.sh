@@ -6,7 +6,7 @@
 # @Last Modified By: J1nH4ng                    #
 # @Last Modified Date: 2024-11-12               #
 # @Email: j1nh4ng@icloud.com                    #
-# @Version: v0.9.4                              #
+# @Version: v0.11.6                             #
 # @Description: Scripts 4 Server Inspection     #
 #################################################
 
@@ -99,8 +99,9 @@ report_gateway=""
 # [TODO) DNS
 report_dns=""
 
-# [TODO) 监听端口
+# [DONE) 监听端口
 report_listen=""
+
 # [TODO) SELinux
 report_selinux=""
 # [TODO) Firewalld
@@ -136,7 +137,7 @@ report_running_service=""
 # [DONE) 自启动程序数量
 report_self_initiated_program=""
 
-# [TODO) 计划中的任务数
+# [DONE) 计划中的任务数
 report_crontab=""
 
 # [TODO) 日志服务
@@ -150,6 +151,7 @@ report_ntp=""
 
 # [TODO) JDK 版本
 # [TODO) Node.js 版本
+# [TODO) Php 版本
 
 function version() {
     # 脚本信息
@@ -157,7 +159,7 @@ function version() {
     local SH_VERSION
 
     SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-    SH_VERSION="v0.9.4"
+    SH_VERSION="v0.11.6"
 
     echo ""
     echo -e "\033[1;34m   ________ _____ ____   \033[0m"
@@ -410,11 +412,14 @@ function get_service_status() {
         process=$(/sbin/service --status-all 2>/dev/null | grep -E "is running|正在运行")
     fi
 
-    echo "服务配置"
+    echo "服务配置："
+    echo ""
     echo "----------------"
     echo "${conf}" | column -t
     echo ""
-    echo "正在运行的服务"
+    echo "正在运行的服务："
+    echo ""
+    echo "----------------"
     echo "${process}"
 
     echo ""
@@ -467,35 +472,33 @@ function get_network_status() {
     local i
     local gateway
     local dns
-    local ip
+    local local_ip
     local mac
 
     if [[ $OS_NAME == "CentOS" ]]; then
       /sbin/ifconfif -a | grep -v packets |  grep -v collisions | grep -v inet6
     else
       for i in $(ip link | grep BROADCAST | awk -F: '{print $2}'); do
-        ip add show $i | grep -E "BROADCAST|global" | awk '{print $2}' | tr '\n' ' ' ;
-        echo "";
+        local_ip=$(ip add show $i | grep -E "BROADCAST|global" | awk '{print $2}' | tr '\n' ' ' );
       done
     fi
 
     gateway=$(ip route | grep default | awk '{print $3}')
     dns=$(grep nameserver /etc/resolv.conf | grep -v "#" | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')
-
-    ip=$(ip -f inet addr | grep -v 127.0.0.1 | grep inet | awk '{print $NF,$2}' | tr '\n' ',' | sed 's/,$//')
     mac=$(ip link | grep -v "LOOPBACK\|loopback" | awk '{print $2}' | sed 'N;s/\n//' | tr '\n' ',' | sed 's/,$//')
 
     echo ""
-    echo "网卡 IP 为：${ip}"
-    echo "网关为：${gateway}"
-    echo "DNS 为：${dns}"
-    echo "MAC 为：${mac}"
+    echo "网卡与其 IP  地址为：${local_ip}"
+    echo "网卡与其 MAC 地址为：${mac}"
+    echo "网关地址为：${gateway}"
+    echo "DNS 地址为：${dns}"
 
     echo ""
     echo "#################### 网络检查结束 ####################"
     echo ""
 
-    report_ip="${ip}"
+    # report_ip="${local_ip}"
+    report_ip=$(ip -f inet addr | grep -v 127.0.0.1 | grep inet | awk '{print $NF,$2}' | tr '\n' ',' | sed 's/,$//')
     report_mac="${mac}"
     report_gateway="${gateway}"
     report_dns="${dns}"
@@ -504,9 +507,71 @@ function get_network_status() {
     export report_mac
     export report_gateway
     export report_dns
-
 }
 
+function get_listen_status() {
+    echo ""
+    echo "#################### 监听地址检查 ####################"
+    echo ""
+
+    local tcp_listen
+
+    tcp_listen=$(ss -ntul | column -t)
+
+    echo "网络地址监听地址列表如下："
+    echo ""
+    echo "${tcp_listen}"
+
+    echo ""
+    echo "#################### 监听地址检查结束 ####################"
+    echo ""
+
+    report_listen="$(echo "${tcp_listen}" | sed '1d' | awk '/tcp/ {print $5}' | awk -F: '{print $NF}' | sort | uniq | wc -l)"
+
+    export report_listen
+}
+
+function get_cron_status() {
+    echo ""
+    echo "#################### 计划任务检查 ####################"
+    echo ""
+
+    local local_crontab
+    local user
+    local shell
+
+    local_crontab=0
+
+    for shell in $(grep -v "/sbin/nologin" /etc/shells); do
+      for user in $(grep "${shell}" /etc/passwd | awk -F: '{print $1}'); do
+        crontab -l -u "${user}" >/dev/null 2>&1
+        status=$?
+        if [ $status -eq 0 ]; then
+          echo ""
+          echo "当前用户为：${user}"
+          echo ""
+          echo "当前用户的的定时任务如下："
+          echo ""
+          crontab -l -u "${user}"
+          let local_crontab+=local_crontab+$(crontab -l -u "${user}" | wc -l)
+          echo ""
+        fi
+      done
+    done
+
+    # 列出与 crontab 相关的文件
+    # find /etc/cron* -type f | xargs -i ls -l {} | column -t
+
+    let local_crontab=local_crontab+$(find /etc/cron* -type f | wc -l)
+
+    echo ""
+    echo "#################### 计划任务检查结束 ####################"
+    echo ""
+
+    report_crontab="${local_crontab}"
+
+    export report_crontab
+}
 
 function main() {
     version
@@ -518,6 +583,8 @@ function main() {
     get_service_status
     get_auto_start_status
     get_network_status
+    get_listen_status
+    get_cron_status
 }
 
 main "$@"
