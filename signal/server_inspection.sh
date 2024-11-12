@@ -4,9 +4,9 @@
 # @Author: J1nH4ng                              #
 # @Date: 2024-11-07                             #
 # @Last Modified By: J1nH4ng                    #
-# @Last Modified Date: 2024-11-08               #
+# @Last Modified Date: 2024-11-12               #
 # @Email: j1nh4ng@icloud.com                    #
-# @Version: v0.3.2                              #
+# @Version: v0.9.4                              #
 # @Description: Scripts 4 Server Inspection     #
 #################################################
 
@@ -91,40 +91,65 @@ report_inode_used_percent=""
 
 
 # [TODO) IP 地址
+report_ip=""
 # [TODO) MAC 地址
+report_mac=""
 # [TODO) 默认网关
+report_gateway=""
 # [TODO) DNS
+report_dns=""
 
 # [TODO) 监听端口
+report_listen=""
+# [TODO) SELinux
+report_selinux=""
 # [TODO) Firewalld
+report_firewalld=""
 
 # [TODO) 用户
+report_users=""
 # [TODO) 空密码用户
+report_user_with_empty_password=""
 # [TODO) 相同 ID 用户
+report_user_with_same_uid=""
 # [TODO) 密码过期
+report_password_expiry=""
 # [TODO) ROOT 用户
+report_root_users=""
 # [TODO) Sudo 授权
+report_sudoers=""
 
 # [TODO) SSH 信任主机
+report_ssh_authorized=""
 # [TODO) SSH 协议版本
+report_sshd_protocol_version=""
 # [TODO) 允许 ROOT 远程登录
+report_sshd_permit_root_login=""
 
 # [TODO) 僵尸进程数量
-# [TODO) 自启动服务数量
+report_defunct_process=""
+# [DONE) 自启动服务数量
 report_self_initiated_service=""
-# [TODO) 自启动程序数量
+# [DONE) 运行中的服务数量
+report_running_service=""
+
+# [DONE) 自启动程序数量
 report_self_initiated_program=""
 
-# [TODO) 运行中的任务数
 # [TODO) 计划中的任务数
+report_crontab=""
 
 # [TODO) 日志服务
+report_syslog=""
 
 # [TODO) SNMP
+report_snmp=""
 # [TODO) NTP
+report_ntp=""
+
 
 # [TODO) JDK 版本
-
+# [TODO) Node.js 版本
 
 function version() {
     # 脚本信息
@@ -132,7 +157,7 @@ function version() {
     local SH_VERSION
 
     SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-    SH_VERSION="v0.5.1"
+    SH_VERSION="v0.9.4"
 
     echo ""
     echo -e "\033[1;34m   ________ _____ ____   \033[0m"
@@ -270,6 +295,11 @@ function get_memory_status() {
     ((memory_used=memory_total-memory_free))
     memory_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")
 
+    report_memory_total="$((memory_total/1024))"" MB"
+    report_memory_free="$((memory_free/1024))"" MB"
+    report_memory_used="$((memory_used/1024))"" MB"
+    report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
+
     echo ""
     echo "Mem 总共量为：${report_memory_total}"
     echo "Mem 空闲量为：${report_memory_free}"
@@ -279,11 +309,6 @@ function get_memory_status() {
     echo ""
     echo "#################### 内存检查结束 ####################"
     echo ""
-
-    report_memory_total="$((memory_total/1024))"" MB"
-    report_memory_free="$((memory_free/1024))"" MB"
-    report_memory_used="$((memory_used/1024))"" MB"
-    report_memory_used_percent=$(awk "BEGIN {if($memory_total==0){printf 100}else{printf \"%.2f\",$memory_used*100/$memory_total}}")"%"
 
     export report_memory_total
     export report_memory_free
@@ -331,6 +356,16 @@ function get_disk_status() {
     inode_free=$((inode_total-inode_used))
     inode_used_percent=$(echo "${inode_total}" "${inode_used}" | awk '{if($1==0){printf 100}else{printf "%.2f",$2*100/$1}}')
 
+    report_disk_total=$((disk_total/1024/1024))" GB"
+    report_disk_free=$((disk_free/1024/1024))" GB"
+    report_disk_used=$((disk_used/1024/1024))" GB"
+    report_disk_used_percent="${disk_used_percent}""%"
+
+    report_inode_total=$((inode_total/1000))" K"
+    report_inode_free=$((inode_free/1000))" K"
+    report_inode_used=$((inode_used/1000))" K"
+    report_inode_used_percent="$inode_used_percent""%"
+
     echo ""
     echo "DISK 总共量为：${report_disk_total}"
     echo "DISK 已用量为：${report_disk_used}"
@@ -348,20 +383,10 @@ function get_disk_status() {
     echo "#################### 磁盘检查结束 ####################"
     echo ""
 
-    report_disk_total=$((disk_total/1024/1024))" GB"
-    report_disk_free=$((disk_free/1024/1024))" GB"
-    report_disk_used=$((disk_used/1024/1024))" GB"
-    report_disk_used_percent="${disk_used_percent}""%"
-
     export report_disk_total
     export report_disk_free
     export report_disk_used
     export report_disk_used_percent
-
-    report_inode_total=$((inode_total/1000))" K"
-    report_inode_free=$((inode_free/1000))" K"
-    report_inode_used=$((inode_used/1000))" K"
-    report_inode_used_percent="$inode_used_percent""%"
 
     export report_inode_total
     export report_inode_free
@@ -373,6 +398,9 @@ function get_service_status() {
     echo ""
     echo "#################### 服务检查 ####################"
     echo ""
+
+    local conf
+    local process
 
     if [[ $OS_NAME != "centos" ]];then
         conf=$(systemctl list-unit-files --type=service --state=enabled --no-pager | grep "enabled")
@@ -394,11 +422,91 @@ function get_service_status() {
     echo ""
 
     report_self_initiated_service="$(echo "${conf}" | wc -l)"
-    report_self_initiated_program="$(echo "${process}" | wc -l)"
+    report_running_service="$(echo "${process}" | wc -l)"
 
     export report_self_initiated_service
+    export report_running_service
+}
+
+function get_auto_start_status() {
+    echo ""
+    echo "#################### 自启动检查 ####################"
+    echo ""
+
+    local conf
+
+    conf=$(grep -v "^#" /etc/rc.d/rc.local | sed '/^$/d')
+    echo "${conf}"
+
+    echo ""
+    echo "#################### 自启动检查结束 ####################"
+    echo ""
+
+    report_self_initiated_program="$(echo ${conf} | wc -l)"
+
     export report_self_initiated_program
 }
+
+function get_login_status() {
+    echo ""
+    echo "#################### 登录检查 ####################"
+    echo ""
+
+    last | head
+
+    echo ""
+    echo "#################### 登录检查结束 ####################"
+    echo ""
+}
+
+function get_network_status() {
+    echo ""
+    echo "#################### 网络检查 ####################"
+    echo ""
+
+    local i
+    local gateway
+    local dns
+    local ip
+    local mac
+
+    if [[ $OS_NAME == "CentOS" ]]; then
+      /sbin/ifconfif -a | grep -v packets |  grep -v collisions | grep -v inet6
+    else
+      for i in $(ip link | grep BROADCAST | awk -F: '{print $2}'); do
+        ip add show $i | grep -E "BROADCAST|global" | awk '{print $2}' | tr '\n' ' ' ;
+        echo "";
+      done
+    fi
+
+    gateway=$(ip route | grep default | awk '{print $3}')
+    dns=$(grep nameserver /etc/resolv.conf | grep -v "#" | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')
+
+    ip=$(ip -f inet addr | grep -v 127.0.0.1 | grep inet | awk '{print $NF,$2}' | tr '\n' ',' | sed 's/,$//')
+    mac=$(ip link | grep -v "LOOPBACK\|loopback" | awk '{print $2}' | sed 'N;s/\n//' | tr '\n' ',' | sed 's/,$//')
+
+    echo ""
+    echo "网卡 IP 为：${ip}"
+    echo "网关为：${gateway}"
+    echo "DNS 为：${dns}"
+    echo "MAC 为：${mac}"
+
+    echo ""
+    echo "#################### 网络检查结束 ####################"
+    echo ""
+
+    report_ip="${ip}"
+    report_mac="${mac}"
+    report_gateway="${gateway}"
+    report_dns="${dns}"
+
+    export report_ip
+    export report_mac
+    export report_gateway
+    export report_dns
+
+}
+
 
 function main() {
     version
@@ -406,6 +514,10 @@ function main() {
     get_cpu_status
     get_memory_status
     get_disk_status
+    get_login_status
+    get_service_status
+    get_auto_start_status
+    get_network_status
 }
 
 main "$@"
