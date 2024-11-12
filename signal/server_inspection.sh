@@ -6,7 +6,7 @@
 # @Last Modified By: J1nH4ng                    #
 # @Last Modified Date: 2024-11-12               #
 # @Email: j1nh4ng@icloud.com                    #
-# @Version: v0.11.6                             #
+# @Version: v0.11.7                             #
 # @Description: Scripts 4 Server Inspection     #
 #################################################
 
@@ -52,6 +52,8 @@ report_language=""
 report_last_reboot_time=""
 # [DONE) 运行时间
 report_uptime=""
+# [DONE) SELinux
+report_selinux=""
 
 # [INFO] CPU 信息
 # [DONE) CPU 数量
@@ -90,20 +92,19 @@ report_inode_used=""
 report_inode_used_percent=""
 
 
-# [TODO) IP 地址
+# [DONE) IP 地址
 report_ip=""
-# [TODO) MAC 地址
+# [DONE) MAC 地址
 report_mac=""
-# [TODO) 默认网关
+# [DONE) 默认网关
 report_gateway=""
-# [TODO) DNS
+# [DONE) DNS
 report_dns=""
 
 # [DONE) 监听端口
 report_listen=""
 
-# [TODO) SELinux
-report_selinux=""
+
 # [TODO) Firewalld
 report_firewalld=""
 
@@ -159,7 +160,7 @@ function version() {
     local SH_VERSION
 
     SH_AUTHOR="J1nH4ng<j1nh4ng@icloud.com>"
-    SH_VERSION="v0.11.6"
+    SH_VERSION="v0.11.7"
 
     echo ""
     echo -e "\033[1;34m   ________ _____ ____   \033[0m"
@@ -226,6 +227,7 @@ function get_system_status() {
     report_language="${default_language}"
     report_last_reboot_time="${last_reboot}"
     report_uptime="${uptime}"
+    report_selinux="${selinux}"
 
     export report_current_date
     export report_hostname
@@ -235,6 +237,7 @@ function get_system_status() {
     export report_language
     export report_last_reboot_time
     export report_uptime
+    export report_selinux
     export LANG="${default_language}"
 }
 
@@ -572,6 +575,52 @@ function get_cron_status() {
 
     export report_crontab
 }
+
+function utils_get_how_long_age() {
+    local datetime
+    local format_timestamp
+    local now_timestamp
+    local minus_timestamp
+
+    local days
+    local hours
+    local minutes
+
+
+    const SEC_IN_ONE_DAY=86400
+    const SEC_IN_ONE_HOUR=3600
+    const SEC_IN_ONE_MINUTE=60
+
+    datetime="$*"
+
+    [ -z "${datetime}" ]  && echo "错误输入：function utils_get_how_long_age() {:} $*"
+
+    format_timestamp=$(date +%s -d "${datetime}")
+    now_timestamp=$(date +%s)
+    minus_timestamp=$((now_timestamp-format_timestamp))
+
+    days=0
+    hours=0
+    minutes=0
+
+    while (( $(($minus_timestamp-$SEC_IN_ONE_DAY)) > 1 )); do
+      let minus_timestamp=minus_timestamp-SEC_IN_ONE_DAY
+      let days++
+    done
+
+    while (( $(($minus_timestamp-$SEC_IN_ONE_HOUR)) > 1 )); do
+      let minus_timestamp=minus_timestamp-SEC_IN_ONE_HOUR
+      let hours++
+    done
+
+    while (( $(($minus_timestamp-$SEC_IN_ONE_MINUTE)) > 1 )); do
+      let minus_timestamp=minus_timestamp-SEC_IN_ONE_MINUTE
+      let minutes++
+    done
+
+    echo "${days}天${hours}小时${minutes}分钟"
+}
+
 
 function main() {
     version
