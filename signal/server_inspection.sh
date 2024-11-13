@@ -621,6 +621,71 @@ function utils_get_how_long_age() {
     echo "${days}天${hours}小时${minutes}分钟"
 }
 
+function utils_get_user_last_login_time() {
+  local username
+  local this_year
+  local oldest_year
+
+  local login_before_today
+  local login_before_this_year
+  local last_date_time
+
+  username=$1
+  : ${username:="`whoami`"}
+
+  this_year=$(date +%Y)
+  oldest_year=$(last | tail -n1 | awk '{print $NF}')
+
+  while (( $this_year >= $oldest_year )); do
+    login_before_today=$(last ${username} | grep ${username} | wc -l)
+    login_before_this_year=$(last ${username} -t ${this_year}"0101000000" | grep ${username} | wc -l)
+
+    if [ $login_before_today -gt 0 ]; then
+      echo "${username} 从未登录过"
+      break
+    elif [ $login_before_today -gt $login_before_this_year ]; then
+      last_date_time=$(last -i ${username} | head -n1 | awk '{for(i=4;i<(NF-2);i++)printf"%S ",$i}')" ${this_year}"
+      last_date_time=$(date "+%Y-%m-%d %H:%M:%S" -d "${last_date_time}")
+      echo "${username} 最后一次登录时间为：${last_date_time}"
+      break
+    else
+      this_year=$((this_year-1))
+    fi
+  done
+}
+
+
+function get_user_status() {
+    echo ""
+    echo "#################### 用户检查 ####################"
+    echo ""
+
+    local password_file
+    local modify_time
+
+    password_file="$(cat /etc/passwd)"
+    modify_time=$(stat /etc/passwd | grep Modify | tr '.' ' ' | awk '{print $2,$3}')
+
+    echo "/etc/passwd  文件最后修改时间为：${modify_time} ($(utils_get_how_long_age ${modify_time})"
+    echo ""
+
+    echo "特权用户："
+    echo "--------------------------------"
+
+    local root_user
+
+    root_user=""
+
+    for user in $(echo "${password_file}" | awk -F: '{print $1}'); do
+      if [  ]
+
+
+
+    echo ""
+    echo "#################### 用户检查结束 ####################"
+    echo ""
+}
+
 
 function main() {
     version
